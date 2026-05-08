@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPARK — Evidence Over Plans: Online Trajectory Verification for Skill Distillation</title>
+  <meta name="description" content="SPARK is a research framework for automated LLM-agent skill generation. It uses the trajectory-level Posterior Distillation Index (PDI) to quantify whether a skill is grounded in task-environment evidence rather than prior plans." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="brand-logo">S</span>
+      <span class="brand-name">SPARK</span>
+    </a>
+    <button class="nav-toggle" aria-label="toggle nav">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#framework">Framework</a>
+      <a href="#pdi">PDI</a>
+      <a href="#bench">Benchmark</a>
+      <a href="#results">Results</a>
+      <a href="#cases">Cases</a>
+      <a href="#online">Online PDI</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="#resources">Resources</a>
+      <a class="nav-cta" href="https://github.com/EtaYang10th/spark-skills" target="_blank" rel="noopener">GitHub →</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top" class="hero">
+  <div class="container">
+    <span class="eyebrow">NeurIPS 2026 · Preprint</span>
+    <h1>
+      <span class="gradient">Evidence Over Plans:</span><br/>
+      Online Trajectory Verification for Skill Distillation
+    </h1>
+    <p class="tagline">
+      SPARK is an automated skill-generation framework for LLM agents. Rather than asking models to draft skills from prior plans,
+      it uses the <b>trajectory-level Posterior Distillation Index (PDI)</b> to assess whether each skill is grounded in task-environment evidence,
+      and uses that signal to guide exploration, correct failure modes, and distill transferable <code>SKILL.md</code> documents.
+    </p>
+
+    <div class="bullets">
+      <span class="chip"><span class="dot"></span>Evaluated on <b>SkillsBench · 86 runnable tasks</b></span>
+      <span class="chip warm"><span class="dot"></span><b>+300</b> generated task variants</span>
+      <span class="chip green"><span class="dot"></span>Student inference <b>1,000× cheaper</b> than teacher</span>
+      <span class="chip"><span class="dot"></span>Cross-domain: <b>ALFWorld</b></span>
+    </div>
+
+    <div class="ctas">
+      <a class="btn primary" href="#resources">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Paper (PDF)
+      </a>
+      <a class="btn ghost" href="https://github.com/EtaYang10th/spark-skills" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.92.58.11.79-.25.79-.56v-2c-3.2.69-3.87-1.54-3.87-1.54-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.75.41-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.17a10.98 10.98 0 0 1 5.76 0c2.2-1.48 3.16-1.17 3.16-1.17.62 1.58.23 2.75.11 3.04.73.8 1.18 1.82 1.18 3.08 0 4.41-2.69 5.39-5.25 5.67.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg>
+        GitHub
+      </a>
+      <a class="btn ghost" href="#framework">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Explore SPARK
+      </a>
+    </div>
+
+    <div class="institutions">
+      <span class="small" style="margin-right:4px;">Contributors from</span>
+      <span class="inst-chip">Rutgers University</span>
+      <span class="inst-chip">Department of Computer Science</span>
+      <span class="inst-chip">Department of Statistics</span>
+    </div>
+  </div>
+</header>
+
+<section id="why" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Why It Matters</div>
+    <h2>Prior Plans ≠ Transferable Skills</h2>
+    <p class="lead">
+      Equipping agents with human-written procedural skill documents can substantially improve task success rates, but most automated skill-generation methods
+      operate <b>before environment interaction</b>: the model prescribes how a task should be solved and packages that prior intent into <code>SKILL.md</code>.
+      Such skills are often dominated by generic priors and can yield negligible or even negative gains when executed.
+    </p>
+
+    <p class="lead">
+      SPARK is built on a central claim: <b>effective procedural knowledge must be posterior-based</b>.
+      It should encode environment-specific constraints, execution dependencies, and failure modes that are discoverable only through interaction with the environment.
+      Once distilled, this posterior experience becomes reusable and verifiable guidance for future agents.
+    </p>
+
+    <div class="grid cols-3 mt-16">
+      <div class="card">
+        <h3>① Trajectory-Level Metric</h3>
+        <p>PDI provides an interpretable measure of whether a skill is grounded in task-environment evidence rather than unverified prior plans.</p>
+      </div>
+      <div class="card">
+        <h3>② Analyzable Skill Generation</h3>
+        <p>SPARK preserves execution logs, verifier signals, and exploration-memo histories for full trajectory-level auditing and analysis.</p>
+      </div>
+      <div class="card">
+        <h3>③ Online Intervention</h3>
+        <p>A memo-based PDI proxy can trigger soft or strong interventions during exploration, preventing trajectories from stagnating or repeating ossified plans.</p>
+      </div>
+      <div class="card">
+        <h3>④ Cross-Model Transfer</h3>
+        <p>The cost of expensive teacher exploration is amortized across many low-cost student invocations, with student inference as low as <b>$0.02/task</b>.</p>
+      </div>
+      <div class="card">
+        <h3>⑤ Out-of-Domain Validation</h3>
+        <p>On ALFWorld, whose text-based household tasks differ sharply from terminal programming tasks, PDI-guided skills improve success from <b>16.7% to 40.0%</b>.</p>
+      </div>
+      <div class="card">
+        <h3>⑥ Task Construction Support</h3>
+        <p>SPARK’s task-generation pipeline synthesizes executable, oracle-verified task variants from natural-language specifications for cross-instance transfer evaluation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="framework" class="section alt">
+  <div class="container">
+    <div class="section-eyebrow">Framework</div>
+    <h2>Two Independently Iterative Pipelines</h2>
+    <p class="lead">
+      SPARK decouples task construction from skill generation into two pipelines that can evolve independently: tasks can be expanded continuously,
+      while skills are repeatedly distilled from verified trajectories without manually authoring both sides.
+    </p>
+
+    <figure class="fig">
+      <img src="assets/img/skills_gen_pipeline.png" alt="SPARK pipeline" />
+      <figcaption>
+        PDI-based SPARK Illustration. <b>Left: Skill Generation.</b> A teacher agent interacts with a Dockerized environment for up to N<sub>max</sub> attempts,
+        updates an exploration memo from execution feedback, distills the full trajectory trace into <code>SKILL.md</code> upon success, and receives targeted PDI-proxy interventions upon failure.
+        <b>Right: Task Construction.</b> Blueprint generation → repair → critique → oracle validation converts prompts into executable benchmark instances;
+        student agents then evaluate whether PDI-grounded knowledge transfers across tasks rather than overfitting to the teacher’s original trajectory.
+      </figcaption>
+    </figure>
+
+    <div class="grid cols-2 mt-24">
+      <div class="card">
+        <h3>🔁 Skill Pipeline</h3>
+        <p class="mt-8"><code>execute → judge → summarize → retry → distill skill</code></p>
+        <ul class="mt-16">
+          <li><b>Attempt log</b>: a one-line summary of each attempt, preserving both strategy and outcome.</li>
+          <li><b>Verified Facts</b>: environment-confirmed facts that persist across memo rewrites.</li>
+          <li><b>Current Error Pattern</b>: the active diagnosis of the current failure mode.</li>
+          <li><b>Next Strategy</b>: a plan that must differ from all previous attempts.</li>
+          <li><b>Commands</b>: the key shell actions from the previous attempt.</li>
+        </ul>
+        <p class="small mt-16">
+          The memo is <b>rewritten as a whole</b> rather than appended to, preventing the context from being flooded with low-value stdout;
+          historical versions are still retained so cross-attempt patterns remain analyzable.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>🧩 Task Pipeline</h3>
+        <p class="mt-8"><code>prompt → retrieval → TaskBlueprint → Harbor task → oracle validation</code></p>
+        <ul class="mt-16">
+          <li><b>Blueprint</b>: structures a natural-language prompt into instructions, environment, support files, oracle, and verifier.</li>
+          <li><b>Repair</b>: iteratively fixes constraint violations in the blueprint.</li>
+          <li><b>Critique</b>: checks semantic consistency and executable constraints.</li>
+          <li><b>Validation</b>: accepts only tasks that pass a deterministic oracle.</li>
+        </ul>
+        <p class="small mt-16">
+          This is a <b>build-and-verify</b> process rather than a one-shot LLM generation step.
+          It also enables batch generation of unseen instances from the same problem class, testing whether a skill captures reusable procedural structure.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-32">
+      <h3 style="margin-bottom:10px;">Evidence-Driven Skill Generation</h3>
+      <p class="small" style="color:var(--c-text-muted); max-width:880px;">
+        After task success, SPARK aggregates six structured evidence sources and passes them to the skill-distillation model, enabling it to extract transferable knowledge from the full solution path and obstacle context
+        rather than summarizing the surface of a single successful attempt.
+      </p>
+      <div class="grid cols-3 mt-16">
+        <div class="card"><h3>① Task Pattern</h3><p>An abstracted task instruction that captures the problem class rather than instance-specific details.</p></div>
+        <div class="card"><h3>② Execution Chain</h3><p>The key command sequence from the successful trajectory, filtered through semantic classification, importance scoring, and low-signal removal.</p></div>
+        <div class="card"><h3>③ Verification</h3><p>The environment-verified outcomes: which tests passed and what final reward was achieved.</p></div>
+        <div class="card"><h3>④ Lessons</h3><p>Recurring failure modes and confirmed caveats distilled from the complete attempt history.</p></div>
+        <div class="card"><h3>⑤ Environment</h3><p>Runtime context from the Dockerfile, including base image, packages, and SDKs.</p></div>
+        <div class="card"><h3>⑥ Raw Support Tail</h3><p>The stdout tail from successful execution, used to calibrate abstraction against raw evidence.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pdi" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Metric</div>
+    <h2>Posterior Distillation Index (PDI)</h2>
+    <p class="lead">
+      PDI is a trajectory-level metric: it measures whether the final <code>SKILL.md</code> repeats prior intent or records environment-verified evidence.
+      We use Jensen–Shannon divergence to compare token distributions and convert distributional distance into similarity
+      \(\psi(P_x,P_y) = 1 - \mathrm{JS}(P_x,P_y)\).
+    </p>
+
+    <div class="grid cols-3 mt-16">
+      <div class="card">
+        <h3>φ<sub>exec</sub> — Execution Grounding</h3>
+        <p>The similarity between the successful execution-command distribution P<sub>E</sub> and the final skill distribution P<sub>s</sub>.
+        Higher values indicate that the skill focuses more on environment-verified operations.</p>
+      </div>
+      <div class="card">
+        <h3>φ<sub>plan</sub> — Plan Copying</h3>
+        <p>The similarity between P<sub>P</sub>, aggregated from all <i>Next Strategy</i> entries in the memo, and P<sub>s</sub>.
+        Higher values indicate that the skill resembles repeated plans rather than independently verified knowledge.</p>
+      </div>
+      <div class="card">
+        <h3>φ<sub>oss</sub> — Memo Ossification</h3>
+        <p>The distributional stability of <i>Verified Facts</i> and failed-test sets across attempts. Higher values indicate rigid task understanding
+        and repeated circulation around the same failure mode.</p>
+      </div>
+    </div>
+
+    <div class="mt-24 eqn">
+      PDI = z(φ<sub>exec</sub>) − z(φ<sub>plan</sub>) − z(φ<sub>oss</sub>)
+    </div>
+    <p class="small mt-8">
+      The equal-weight linear form is deliberate: PDI is designed as an <b>interpretable, benchmark-transferable</b> diagnostic metric
+      rather than a predictive model overfit to a particular benchmark. Weight-sensitivity analysis shows that sign consistency is sufficient for significant correlation; cross-validated fitted weights perform worse on held-out data.
+    </p>
+
+    <div class="grid cols-2 mt-24">
+      <figure class="fig">
+        <img src="assets/img/trajectory_pdi_divergence.png" alt="PDI analysis" />
+        <figcaption>
+          (a) Pass-gain rates grouped by trajectory: high-PDI iterative trajectories outperform interaction-free and low-PDI trajectories across all seven student models.
+          (b) PDI vs. Δr for each (model, task) pair: Spearman ρ = +0.364 (p < 10⁻⁶).
+          (c) Memo ossification vs. the gap relative to human-written skills: ρ = −0.277 (p < 10⁻³).
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent exploration" />
+        <figcaption>
+          <b>Divergent exploration</b> transfers better than <b>convergent exploration</b>. Convergent trajectories often encode teacher-specific refinements
+          that student models cannot reproduce; for some students, convergent skills even yield negative Δr.
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="takeaway mt-24">
+      <b>Takeaway.</b> The best quadrant is <b>low φ<sub>plan</sub> + high φ<sub>exec</sub></b>, with average Δr = <b>+0.377</b>
+      and a <b>+0.312</b> gain over human-written skills; the worst quadrant (high plan, low exec) has Δr ≈ 0 and falls below human-written skills by <b>−0.040</b>.
+      Effective skills distill what the environment verified, not what the agent once planned to do.
+    </div>
+  </div>
+</section>
+
+<section id="bench" class="section alt">
+  <div class="container">
+    <div class="section-eyebrow">Benchmark</div>
+    <h2>Runnable Tasks · Trajectory-Level Benchmark</h2>
+    <p class="lead">
+      The main experiments use 86 runnable tasks from <a href="https://github.com/benchflow-ai/skillsbench" target="_blank" rel="noopener">SkillsBench</a>.
+      Each task includes a natural-language instruction, a Docker environment, and a deterministic pytest oracle with reward r∈[0,1].
+      To assess generalization, SPARK also synthesizes 300 task variants and conducts cross-domain validation on ALFWorld’s text-based household tasks.
+    </p>
+
+    <div class="stats mt-16">
+      <div class="stat"><div class="big">86</div><div class="label">Runnable Tasks</div></div>
+      <div class="stat"><div class="big">11</div><div class="label">Domains</div></div>
+      <div class="stat"><div class="big">7</div><div class="label">Student Models</div></div>
+      <div class="stat"><div class="big">300</div><div class="label">Generated Variants</div></div>
+    </div>
+
+    <div class="tag-row mt-24">
+      <span class="tag">Software Engineering</span>
+      <span class="tag">Finance</span>
+      <span class="tag">Cybersecurity</span>
+      <span class="tag">Data Analysis</span>
+      <span class="tag">DevOps</span>
+      <span class="tag">Formal Methods · Lean4</span>
+      <span class="tag">Scientific Computing</span>
+      <span class="tag">Signal Processing</span>
+      <span class="tag">ML Tooling</span>
+      <span class="tag">Embedded Environments</span>
+      <span class="tag">ALFWorld · Household</span>
+    </div>
+
+    <div class="mt-24">
+      <h3 style="margin-bottom:8px;">Evaluation Metrics</h3>
+      <ul>
+        <li><b>Task reward</b> r<sub>m,t</sub>: the reward achieved by student model m under each condition (baseline / +SPARK skill / +human skill).</li>
+        <li><b>Skill gain</b> Δr<sub>m,t</sub> = r<sup>+skill</sup> − r<sup>base</sup>: the reward improvement attributable to the injected skill.</li>
+        <li><b>Pass-gain rate</b> PG(g, m): among tasks failed by the baseline, the fraction solved after adding the skill.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Results</div>
+    <h2>SPARK-skill vs. Human-skill vs. No-skill</h2>
+    <p class="lead">
+      SPARK-generated skills outperform human-written skills on most student models; several smaller models even surpass the teacher models’
+      interaction-free, no-skill performance after receiving SPARK skills—<b>weaker students can outperform stronger teachers</b>.
+    </p>
+
+    <div class="grid cols-2 mt-16">
+      <figure class="fig">
+        <img src="assets/img/baseline_vs_spark_vs_human.png" alt="Main result" />
+        <figcaption>
+          Average reward r̄ for seven student models under three conditions. Horizontal dashed lines indicate the no-skill,
+          <b>interaction-free</b> performance of the two teacher models (GPT-5.4 and Claude Opus 4.6).
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/img/cross_model_agreement_rate_heatmap.png" alt="Cross-model agreement" />
+        <figcaption>
+          Agreement matrix A(m<sub>i</sub>, m<sub>j</sub>) across seven student models. Off-diagonal agreement is generally below 60%.
+          In other words, <b>there is no universal key</b>: simply scaling a skill library does not make gains add linearly.
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="takeaway mt-24">
+      <b>Two striking findings.</b>
+      (1) GPT-5.4-mini with SPARK skills reaches r̄ = 0.52, above the human-skill condition at 0.47;
+      (2) GPT-5.4-nano with SPARK skills (0.41) even exceeds Claude Opus 4.6 <i>without any skill</i> (0.37).
+    </div>
+
+    <div class="mt-32">
+      <h3 style="margin-bottom:8px;">Trajectory-level evidence</h3>
+      <div class="grid cols-3 mt-16">
+        <figure class="fig">
+          <img src="assets/img/compression_ratio_vs_skill_effectiveness.png" alt="Compression ratio" />
+          <figcaption><b>Compression ratio:</b> excessive compression removes actionable detail and is negatively correlated with skill effectiveness by Spearman correlation.</figcaption>
+        </figure>
+        <figure class="fig">
+          <img src="assets/img/exploration_sweet_spot.png" alt="Attempts sweet spot" />
+          <figcaption><b>Attempt budget:</b> gains remain consistently positive when K ≤ 3; additional attempts become more variable and model-dependent.</figcaption>
+        </figure>
+        <figure class="fig">
+          <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent" />
+          <figcaption><b>Divergent wins:</b> divergent trajectories yield larger gains across nearly all models, while convergent trajectories can produce negative Δr for some students.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="mt-32">
+      <h3 style="margin-bottom:8px;">Variant Transfer — Same Problem Class, Different Instances</h3>
+      <p class="small" style="color:var(--c-text-muted); max-width:880px;">
+        The main benchmark is a one-to-one evaluation; here we use SPARK’s task pipeline to generate 300 variants and test whether a skill encodes
+        <b>reusable procedural structure</b> rather than memorizing a specific instance.
+      </p>
+      <div class="table-wrap mt-16">
+        <table class="sk">
+          <thead>
+            <tr>
+              <th>Student Model</th>
+              <th>Baseline</th>
+              <th>SPARK (Generated)</th>
+              <th>Human</th>
+              <th>Δ vs Baseline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>DeepSeek-Chat</td><td>43%</td><td class="best"><b>87%</b></td><td>80%</td><td class="badge-up">+43%</td></tr>
+            <tr><td>GPT-5.1-Codex</td><td>17%</td><td class="best"><b>83%</b></td><td>50%</td><td class="badge-up">+67%</td></tr>
+            <tr><td>GPT-5.4-mini</td><td>7%</td><td class="best"><b>53%</b></td><td>33%</td><td class="badge-up">+47%</td></tr>
+            <tr><td>GPT-5.4-nano</td><td>56.7%</td><td class="best"><b>90.0%</b></td><td>83.3%</td><td class="badge-up">+33.3%</td></tr>
+            <tr><td>GLM-4.5-Air</td><td>45.0%</td><td class="best"><b>90.0%</b></td><td>82.0%</td><td class="badge-up">+45.0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="takeaway mt-24">
+      <b>Cross-domain:</b> On ALFWorld, a text-interactive household environment with a task structure very different from programming benchmarks, PDI-refined skills improve overall success
+      from <b>16.7% to 40.0%</b>, showing that SPARK and PDI remain effective in out-of-domain settings.
+    </div>
+  </div>
+</section>
+
+<section id="cases" class="section alt">
+  <div class="container">
+    <div class="section-eyebrow">Case Studies</div>
+    <h2>When PDI Starts to Matter</h2>
+    <p class="lead">
+      The following cases illustrate external transfer (lean4-proof), online PDI intervention (3d-scan-calc / manufacturing-codebook-normalization),
+      and verified execution chains outperforming plan repetition (tactic reproduction). Select a tab to inspect each case.
+    </p>
+
+    <div data-tabs>
+      <div class="tabs" role="tablist">
+        <button class="active" data-target="case-lean">Case 1 · lean4-proof</button>
+        <button data-target="case-online">Case 2 · Online PDI Intervention</button>
+        <button data-target="case-quadrant">Case 3 · Evidence vs Plan Quadrant</button>
+      </div>
+
+      <div class="tab-panel active" data-panel="case-lean">
+        <div class="case">
+          <h4>Held-out Student (Claude Haiku 4.5): 118-line sketch → 393-line executable recipe</h4>
+          <div class="case-meta">Task: prove the geometric-series bound S<sub>n</sub> ≤ 2 in Lean 4; verifier command: <code>lake env lean -DwarningAsError=true solution.lean</code>.</div>
+
+          <div class="grid cols-2 mt-16">
+            <div>
+              <h5 style="margin:0 0 6px;">Before — Non-PDI skill</h5>
+              <ul>
+                <li>Provides only four sections—overview, orientation, strategy, and pitfalls—across 118 lines.</li>
+                <li>Lacks a complete theorem block and offers only a high-level proof sketch.</li>
+                <li>Uses an incomplete verifier command that omits <code>-DwarningAsError=true</code>.</li>
+                <li>Does not specify a write-to-<code>/tmp</code>-then-replace workflow, making it easy to corrupt <code>solution.lean</code>.</li>
+              </ul>
+              <div class="mt-16"><span class="badge-neutral">Trajectory:</span> 15 trial-and-error commands with repeated failures.</div>
+            </div>
+            <div>
+              <h5 style="margin:0 0 6px;">After — PDI-refined skill</h5>
+              <ul>
+                <li>Contains seven structured modules, including step-by-step workflow, reference proof, and testing sections, across 393 lines.</li>
+                <li>Embeds an <b>executable theorem block</b> with explicit <code>norm_num</code> / <code>ring</code> / <code>linarith</code> tactic chains.</li>
+                <li>Provides the <b>exact</b> verifier command, preventing warnings from being silently ignored.</li>
+                <li>Enforces a <b>write-to-<code>/tmp</code>-then-replace</b> workflow to avoid damaging the original file.</li>
+              </ul>
+              <div class="mt-16"><span class="result">5 commands · 0 failures</span></div>
+            </div>
+          </div>
+
+          <div class="takeaway mt-16">
+            PDI turns a seemingly well-written plan-oriented document into an evidence-backed recipe that students can <b>execute step by step</b>.
+            The held-out student never participates in generation yet can reuse the skill directly, illustrating the intended <b>cross-model skill transfer</b>.
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="case-online">
+        <div class="case">
+          <h4>Interrupting Ossified Plans During Exploration, Not After the Fact</h4>
+          <div class="case-meta">Two representative tasks: <code>3d-scan-calc</code> and <code>manufacturing-codebook-normalization</code>.</div>
+
+          <figure class="fig mt-16">
+            <img src="assets/img/exploration_dynamics_pdi_two_tasks.png" alt="Online PDI-guided control" />
+            <figcaption>
+              Each panel reports φ<sub>exec</sub>, φ<sub>plan</sub>, φ<sub>oss</sub>, and the warmup-weighted proxy-PDI used for intervention decisions.
+              Dashed lines mark soft and strong triggers; PDI-enabled runs recover into the positive region later in exploration,
+              whereas observe-only controls remain negative.
+            </figcaption>
+          </figure>
+
+          <ul class="mt-16">
+            <li><b>3d-scan-calc:</b> a soft intervention is triggered at step 4, escalates to a strong intervention at step 5, and the trajectory recovers.</li>
+            <li><b>manufacturing-codebook-normalization:</b> two soft triggers at steps 3 and 5 are sufficient to reverse the trend.</li>
+          </ul>
+
+          <div class="takeaway mt-16">
+            <b>Intervention is prompt-only, and the metric remains hidden from the agent.</b>
+            It corrects trajectory direction without changing the goal or exposing the score, making online PDI intervention highly <b>composable with existing agent systems</b>
+            without retraining.
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="case-quadrant">
+        <div class="case">
+          <h4>Four Quadrants Defined by φ<sub>plan</sub> and φ<sub>exec</sub></h4>
+          <div class="case-meta">Testing the core claim: effective skills combine low plan copying with high execution grounding.</div>
+          <div class="table-wrap mt-16">
+            <table class="sk">
+              <thead><tr><th>φ<sub>plan</sub></th><th>φ<sub>exec</sub></th><th>Average Δr</th><th>Gap vs Human</th></tr></thead>
+              <tbody>
+                <tr class="best"><td>Low</td><td>High</td><td class="badge-up"><b>+0.377</b></td><td class="badge-up"><b>+0.312</b></td></tr>
+                <tr><td>Low</td><td>Low</td><td class="badge-up">+0.321</td><td class="badge-up">+0.393</td></tr>
+                <tr><td>High</td><td>High</td><td>+0.143</td><td>+0.071</td></tr>
+                <tr><td>High</td><td>Low</td><td>+0.028</td><td class="badge-down">−0.040</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small mt-16">
+            The highlighted row is the quadrant PDI is designed to maximize. Counterintuitively, <b>Low plan + Low exec</b> can also be beneficial:
+            as long as the skill does not collapse onto the memo, it can still help even without perfectly matching the command distribution.
+            The worst case combines both problems: the skill merely restates what the agent intended to do, with little evidence of what it actually did.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="online" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Online Intervention Ablation</div>
+    <h2>w/ PDI vs. w/o PDI</h2>
+    <p class="lead">
+      We rerun skill generation on the subset of tasks whose original trajectories had persistently low PDI, enable online PDI intervention, and then perform A/B evaluation under <b>identical downstream conditions</b>.
+      This directly asks: can PDI recover a skill during generation rather than merely score it afterward?
+    </p>
+
+    <div class="table-wrap">
+      <table class="sk">
+        <thead>
+          <tr><th>Student Model</th><th>w/o PDI</th><th>w/ PDI</th><th>Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr class="best"><td>DeepSeek-Chat</td><td>9.1%</td><td><b>42.4%</b></td><td class="badge-up">+33.3%</td></tr>
+          <tr><td>GPT-5.1-Codex</td><td>0.0%</td><td><b>24.2%</b></td><td class="badge-up">+21.2%</td></tr>
+          <tr><td>GPT-5.4-mini</td><td>18.2%</td><td><b>36.4%</b></td><td class="badge-up">+12.1%</td></tr>
+          <tr><td>GPT-5.4-nano</td><td>15.2%</td><td><b>30.3%</b></td><td class="badge-up">+15.2%</td></tr>
+          <tr><td>GLM-4.5-Air</td><td>3.0%</td><td><b>15.2%</b></td><td class="badge-up">+12.1%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid cols-2 mt-24">
+      <div class="card">
+        <h3>Intervention Mechanism</h3>
+        <p class="mt-8">
+          After reflection step k, SPARK computes the proxy signal \( \hat{d}_k = w_k \cdot \mathrm{PDI}_k \),
+          where \( w_k = \min(1, k/W) \) is a linear warm-up term (W=2) that suppresses early-stage noise.
+        </p>
+        <ul class="mt-16">
+          <li><b>Soft:</b> when \( \hat{d}_k < \tau \) (τ=−0.5), inject prompt-only guidance that encourages the agent to leave its current hypothesis.</li>
+          <li><b>Strong:</b> after two consecutive triggers, additionally subtract the previous <i>Next Strategy</i>, forcing the agent to anchor on <i>Verified Facts</i> and <i>Current Error Pattern</i>.</li>
+          <li><b>Hidden metric:</b> the PDI score is never exposed to the agent, preventing metric gaming.</li>
+        </ul>
+      </div>
+      <figure class="fig">
+        <img src="assets/img/alpha_sensitivity_divergence_pdi.png" alt="alpha sensitivity" />
+        <figcaption>Sensitivity curve for smoothing parameter α. PDI remains robust across a wide low-smoothing range, and its discriminative power is not sensitive to the exact α value.</figcaption>
+      </figure>
+    </div>
+
+    <div class="takeaway mt-24">
+      <b>Baseline comparison:</b> Against three skill-generation baselines (Trace2Skill, AutoRefine, and EvoSkill),
+      SPARK improves average reward over the strongest baseline by <b>+0.119</b> under the same evaluation setting.
+    </div>
+  </div>
+</section>
+
+<section id="quickstart" class="section alt">
+  <div class="container">
+    <div class="section-eyebrow">Quick Start</div>
+    <h2>Run SPARK in a Few Commands</h2>
+    <p class="lead">
+      Requirements: Python 3.12, <code>uv</code>, Docker, Harbor, and an OpenAI-compatible LLM endpoint
+      read from <code>OPENAI_API_KEY</code> / <code>OPENAI_BASE_URL</code> environment variables or a <code>.env</code> file.
+    </p>
+
+    <div class="grid cols-2">
+      <div>
+        <h3>① Generate Runnable Tasks from a Prompt</h3>
+<pre class="code"><code>uv sync
+
+uv run python run_tasks_gen.py \
+  --prompt-file spark_tasks_gen/examples/3d_scan_calc_prompt.json \
+  --model gpt-5.4</code></pre>
+        <p class="small">
+          Outputs are written to <code>spark_tasks_gen/generated_tasks/</code>; each task is first checked by oracle validation and rejected if it fails.
+        </p>
+      </div>
+
+      <div>
+        <h3>② Run the Iterative Skill-Generation Loop</h3>
+<pre class="code"><code>uv run python run_pipeline.py \
+  --agent qwen-coder \
+  --model qwen3-coder-next \
+  --tasks-dir tasks-no-skills \
+  --max-retries 3 \
+  --parallelism 4</code></pre>
+        <p class="small">
+          By default, this launches the dashboard at <a href="http://localhost:8765">http://localhost:8765</a>; add <code>--no-dashboard</code> for CLI-only execution.
+        </p>
+      </div>
+
+      <div>
+        <h3>③ Compare and Evaluate Generated Skills</h3>
+<pre class="code"><code>uv run python run_eval_skills.py \
+  --agent qwen-coder \
+  --model qwen3-coder-next \
+  --skill-source-model qwen3-coder-next \
+  --tasks-dir tasks-no-skills</code></pre>
+        <p class="small">
+          This automatically performs A/B evaluation on the same task set under the native baseline and SPARK <code>SKILL.md</code> injection conditions, writing results to
+          <code>spark_skills_gen/skills_eval_result/</code>.
+        </p>
+      </div>
+
+      <div>
+        <h3>Output Overview</h3>
+        <ul>
+          <li><code>spark_tasks_gen/generated_tasks/&lt;task-id&gt;/</code> — synthesized Harbor tasks</li>
+          <li><code>spark_tasks_gen/generated_tasks/_artifacts/</code> — task-generation traces</li>
+          <li><code>spark-jobs/</code> — Harbor execution outputs</li>
+          <li><code>spark_skills_gen/skills_gen_result/&lt;model&gt;/&lt;task&gt;/</code> — distilled <code>SKILL.md</code> files and attempt logs</li>
+          <li><code>spark_skills_gen/skills_eval_result/&lt;model&gt;/&lt;run&gt;/</code> — skill A/B evaluation summaries</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="resources" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Resources</div>
+    <h2>Paper, Code, and Citation</h2>
+
+    <div class="grid cols-3 mt-16">
+      <a class="card" href="#" target="_blank" rel="noopener">
+        <h3>📄 Paper (PDF)</h3>
+        <p>Evidence Over Plans: Online Trajectory Verification for Skill Distillation — NeurIPS 2026 submission.</p>
+      </a>
+      <a class="card" href="https://github.com/EtaYang10th/spark-skills" target="_blank" rel="noopener">
+        <h3>💻 GitHub · SPARK</h3>
+        <p>Two pipelines for task construction and skill generation, with a dashboard, PDI-proxy implementation, and evaluation scripts.</p>
+      </a>
+      <a class="card" href="https://github.com/benchflow-ai/skillsbench" target="_blank" rel="noopener">
+        <h3>🧪 SkillsBench Tasks</h3>
+        <p>The 86 runnable tasks used in the main experiments, available via sparse checkout into a local SPARK workspace.</p>
+      </a>
+    </div>
+
+    <h3 class="mt-32" style="margin-bottom:8px;">BibTeX</h3>
+    <div class="bibtex-wrap">
+      <button class="copy-btn" data-copy="#bibtex-box">Copy</button>
+<pre class="code" id="bibtex-box"><code>@inproceedings{zhou2026spark,
+  title     = {Evidence Over Plans: Online Trajectory Verification for Skill Distillation},
+  author    = {Zhou, Yang and Dong, Zihan and Wang, Zhenting and Jin, Can and
+               Zhao, Shiyu and Guo, Bangwei and Gu, Difei and
+               Zhang, Linjun and Zhou, Mu and Metaxas, Dimitris N.},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2026},
+}</code></pre>
+    </div>
+
+    <div class="divider"></div>
+    <p class="small">
+      Contact: <a href="mailto:eta.yang@rutgers.edu">eta.yang@rutgers.edu</a> ·
+      <a href="mailto:dnm@rutgers.edu">dnm@rutgers.edu</a>
+    </p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container wrap">
+    <div>© 2026 SPARK · Rutgers University. Evidence over plans.</div>
+    <div>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
