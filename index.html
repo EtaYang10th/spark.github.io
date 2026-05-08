@@ -51,7 +51,7 @@
 
     <div class="bullets">
       <span class="chip"><span class="dot"></span>Evaluated on <b>SkillsBench · 86 runnable tasks</b></span>
-      <span class="chip warm"><span class="dot"></span><b>+300</b> generated task variants</span>
+      <span class="chip warm"><span class="dot"></span>Build-and-verify <b>task construction</b></span>
       <span class="chip green"><span class="dot"></span>Student inference <b>1,000× cheaper</b> than teacher</span>
       <span class="chip"><span class="dot"></span>Cross-domain: <b>ALFWorld</b></span>
     </div>
@@ -119,7 +119,7 @@
       </div>
       <div class="card">
         <h3>⑥ Task Construction Support</h3>
-        <p>SPARK’s task-generation pipeline synthesizes executable, oracle-verified task variants from natural-language specifications for cross-instance transfer evaluation.</p>
+        <p>SPARK’s task-construction pipeline turns prompt-level task ideas into executable, oracle-verified Harbor tasks that support controlled ablations and transfer evaluation.</p>
       </div>
     </div>
   </div>
@@ -259,40 +259,53 @@
 
 <section id="bench" class="section alt">
   <div class="container">
-    <div class="section-eyebrow">Benchmark</div>
-    <h2>Runnable Tasks · Trajectory-Level Benchmark</h2>
+    <div class="section-eyebrow">Runnable Task Construction</div>
+    <h2>From Prompt-Level Ideas to Oracle-Verified Harbor Tasks</h2>
     <p class="lead">
-      The main experiments use 86 runnable tasks from <a href="https://github.com/benchflow-ai/skillsbench" target="_blank" rel="noopener">SkillsBench</a>.
-      Each task includes a natural-language instruction, a Docker environment, and a deterministic pytest oracle with reward r∈[0,1].
-      To assess generalization, SPARK also synthesizes 300 task variants and conducts cross-domain validation on ALFWorld’s text-based household tasks.
+      SPARK treats runnable tasks as a validation interface for trajectory-level skill distillation, not as a predefined list of task categories.
+      A prompt-level task idea is converted into a self-contained Harbor task through a build-and-verify pipeline that makes the instruction,
+      environment, oracle solution, and pytest verifier mutually consistent before the task is accepted.
     </p>
 
     <div class="stats mt-16">
-      <div class="stat"><div class="big">86</div><div class="label">Runnable Tasks</div></div>
-      <div class="stat"><div class="big">11</div><div class="label">Domains</div></div>
-      <div class="stat"><div class="big">7</div><div class="label">Student Models</div></div>
-      <div class="stat"><div class="big">300</div><div class="label">Generated Variants</div></div>
+      <div class="stat"><div class="big">1</div><div class="label">Prompt Spec</div></div>
+      <div class="stat"><div class="big">4</div><div class="label">Build-and-Verify Stages</div></div>
+      <div class="stat"><div class="big">7</div><div class="label">Rendered Harbor Files</div></div>
+      <div class="stat"><div class="big">r=1</div><div class="label">Oracle Acceptance</div></div>
     </div>
 
-    <div class="tag-row mt-24">
-      <span class="tag">Software Engineering</span>
-      <span class="tag">Finance</span>
-      <span class="tag">Cybersecurity</span>
-      <span class="tag">Data Analysis</span>
-      <span class="tag">DevOps</span>
-      <span class="tag">Formal Methods · Lean4</span>
-      <span class="tag">Scientific Computing</span>
-      <span class="tag">Signal Processing</span>
-      <span class="tag">ML Tooling</span>
-      <span class="tag">Embedded Environments</span>
-      <span class="tag">ALFWorld · Household</span>
+    <div class="grid cols-3 mt-24">
+      <div class="card">
+        <h3>① Prompt Specification</h3>
+        <p>A JSON prompt supplies the task idea, optional tool requirements, environment hints, and constraints. These inputs define the validation target for a generated task without claiming that SPARK imposes an intrinsic task scope.</p>
+      </div>
+      <div class="card">
+        <h3>② Blueprint Generation</h3>
+        <p>The model emits a structured <code>TaskBlueprint</code>: instruction markdown, Docker runtime, support files, deterministic data builder, oracle code, verifier code, output path, assumptions, and validation checks.</p>
+      </div>
+      <div class="card">
+        <h3>③ Critique and Repair</h3>
+        <p>SPARK critiques the blueprint for internal mismatches, answer leakage, verifier-oracle drift, unsupported assumptions, schema errors, and output-path inconsistencies, then repairs blocking issues before acceptance.</p>
+      </div>
+      <div class="card">
+        <h3>④ Harbor Rendering</h3>
+        <p>The accepted blueprint is materialized as a Harbor directory with <code>instruction.md</code>, <code>task.toml</code>, <code>environment/Dockerfile</code>, <code>build_data.py</code>, <code>solution/solve.sh</code>, and pytest tests.</p>
+      </div>
+      <div class="card">
+        <h3>⑤ Oracle Validation</h3>
+        <p>Harbor first checks the task package, then runs the oracle solution and verifier. A task is accepted only when deterministic validation completes successfully and the reward reaches <b>r = 1.0</b>.</p>
+      </div>
+      <div class="card">
+        <h3>⑥ Trace Artifacts</h3>
+        <p>Each generation run records the blueprint, critique results, render report, validation feedback, and repair history, making task construction auditable rather than a one-shot LLM artifact.</p>
+      </div>
     </div>
 
     <div class="mt-24">
-      <h3 style="margin-bottom:8px;">Evaluation Metrics</h3>
+      <h3 style="margin-bottom:8px;">Evaluation Interface</h3>
       <ul>
-        <li><b>Task reward</b> r<sub>m,t</sub>: the reward achieved by student model m under each condition (baseline / +SPARK skill / +human skill).</li>
-        <li><b>Skill gain</b> Δr<sub>m,t</sub> = r<sup>+skill</sup> − r<sup>base</sup>: the reward improvement attributable to the injected skill.</li>
+        <li><b>Task reward</b> r<sub>m,t</sub>: reward returned by the deterministic verifier when student model m attempts task t under a given condition.</li>
+        <li><b>Skill gain</b> Δr<sub>m,t</sub> = r<sup>+skill</sup> − r<sup>base</sup>: reward change attributable to injecting the distilled skill.</li>
         <li><b>Pass-gain rate</b> PG(g, m): among tasks failed by the baseline, the fraction solved after adding the skill.</li>
       </ul>
     </div>
@@ -350,10 +363,10 @@
     </div>
 
     <div class="mt-32">
-      <h3 style="margin-bottom:8px;">Variant Transfer — Same Problem Class, Different Instances</h3>
+      <h3 style="margin-bottom:8px;">Controlled Transfer Ablation</h3>
       <p class="small" style="color:var(--c-text-muted); max-width:880px;">
-        The main benchmark is a one-to-one evaluation; here we use SPARK’s task pipeline to generate 300 variants and test whether a skill encodes
-        <b>reusable procedural structure</b> rather than memorizing a specific instance.
+        For an ablation setting, SPARK uses the same task-construction pipeline to produce independently validated evaluation instances under controlled constraints.
+        This isolates whether a distilled skill captures <b>reusable procedural structure</b> rather than memorizing the original trajectory.
       </p>
       <div class="table-wrap mt-16">
         <table class="sk">
