@@ -95,10 +95,6 @@
         </svg>
         HF Dataset
       </a>
-      <a class="btn ghost" href="#framework">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Explore SPARK
-      </a>
     </div>
 
     <div class="institutions">
@@ -164,7 +160,7 @@
       while skills are repeatedly distilled from verified trajectories without manually authoring both sides.
     </p>
 
-    <figure class="fig">
+    <figure class="fig fig-tight">
       <img src="assets/img/skills_gen_pipeline.png" alt="SPARK pipeline" />
       <figcaption>
         PDI-based SPARK Illustration. <b>Left: Skill Generation.</b> A teacher agent interacts with a Dockerized environment for up to N<sub>max</sub> attempts,
@@ -253,31 +249,42 @@
       </div>
     </div>
 
-    <div class="mt-24 eqn">
-      PDI = z(φ<sub>exec</sub>) − z(φ<sub>plan</sub>) − z(φ<sub>oss</sub>)
+    <div class="mt-24 eqn-box">
+      <div class="eqn-kbd">PDI</div>
+      <div class="eqn-eq">=</div>
+      <div class="eqn-term eqn-pos">
+        <span class="eqn-z">z</span><span class="eqn-paren">(</span><span class="eqn-phi">φ<sub>exec</sub></span><span class="eqn-paren">)</span>
+      </div>
+      <div class="eqn-op">−</div>
+      <div class="eqn-term eqn-neg">
+        <span class="eqn-z">z</span><span class="eqn-paren">(</span><span class="eqn-phi">φ<sub>plan</sub></span><span class="eqn-paren">)</span>
+      </div>
+      <div class="eqn-op">−</div>
+      <div class="eqn-term eqn-neg">
+        <span class="eqn-z">z</span><span class="eqn-paren">(</span><span class="eqn-phi">φ<sub>oss</sub></span><span class="eqn-paren">)</span>
+      </div>
     </div>
     <p class="small mt-8">
       The equal-weight linear form is deliberate: PDI is designed as an <b>interpretable, benchmark-transferable</b> diagnostic metric
       rather than a predictive model overfit to a particular benchmark. Weight-sensitivity analysis shows that sign consistency is sufficient for significant correlation; cross-validated fitted weights perform worse on held-out data.
     </p>
 
-    <div class="grid cols-2 mt-24">
-      <figure class="fig">
-        <img src="assets/img/trajectory_pdi_divergence.png" alt="PDI analysis" />
-        <figcaption>
-          (a) Pass-gain rates grouped by trajectory: high-PDI iterative trajectories outperform interaction-free and low-PDI trajectories across all seven student models.
-          (b) PDI vs. Δr for each (model, task) pair: Spearman ρ = +0.364 (p < 10⁻⁶).
-          (c) Memo ossification vs. the gap relative to human-written skills: ρ = −0.277 (p < 10⁻³).
-        </figcaption>
-      </figure>
-      <figure class="fig">
-        <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent exploration" />
-        <figcaption>
-          <b>Divergent exploration</b> transfers better than <b>convergent exploration</b>. Convergent trajectories often encode teacher-specific refinements
-          that student models cannot reproduce; for some students, convergent skills even yield negative Δr.
-        </figcaption>
-      </figure>
-    </div>
+    <figure class="fig fig-wide mt-24">
+      <img src="assets/img/trajectory_pdi_divergence.png" alt="PDI analysis" />
+      <figcaption>
+        (a) Pass-gain rates grouped by trajectory: high-PDI iterative trajectories outperform interaction-free and low-PDI trajectories across all seven student models.
+        (b) PDI vs. Δr for each (model, task) pair: Spearman ρ = +0.364 (p < 10⁻⁶).
+        (c) Memo ossification vs. the gap relative to human-written skills: ρ = −0.277 (p < 10⁻³).
+      </figcaption>
+    </figure>
+
+    <figure class="fig mt-24" style="max-width: 760px; margin-left: auto; margin-right: auto;">
+      <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent exploration" />
+      <figcaption>
+        <b>Divergent exploration</b> transfers better than <b>convergent exploration</b>. Convergent trajectories often encode teacher-specific refinements
+        that student models cannot reproduce; for some students, convergent skills even yield negative Δr.
+      </figcaption>
+    </figure>
 
     <div class="takeaway mt-24">
       <b>Takeaway.</b> The best quadrant is <b>low φ<sub>plan</sub> + high φ<sub>exec</sub></b>, with average Δr = <b>+0.377</b>
@@ -483,8 +490,8 @@
           <h4>Interrupting Ossified Plans During Exploration, Not After the Fact</h4>
           <div class="case-meta">Two representative tasks: <code>3d-scan-calc</code> and <code>manufacturing-codebook-normalization</code>.</div>
 
-          <figure class="fig mt-16">
-            <img src="assets/img/exploration_dynamics_pdi_two_tasks.png" alt="Online PDI-guided control" />
+          <figure class="fig fig-wide mt-16">
+            <img src="assets/img/exploration_dynamics_pdi_two_tasks.gif" alt="Online PDI-guided control — animated" />
             <figcaption>
               Each panel reports φ<sub>exec</sub>, φ<sub>plan</sub>, φ<sub>oss</sub>, and the warmup-weighted proxy-PDI used for intervention decisions.
               Dashed lines mark soft and strong triggers; PDI-enabled runs recover into the positive region later in exploration,
