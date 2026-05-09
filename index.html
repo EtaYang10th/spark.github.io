@@ -24,10 +24,10 @@
     <div class="nav-links">
       <a href="#why">Why</a>
       <a href="#framework">Framework</a>
+      <a href="#cases">Cases</a>
       <a href="#pdi">PDI</a>
       <a href="#bench">Benchmark</a>
       <a href="#results">Results</a>
-      <a href="#cases">Cases</a>
       <a href="#online">Online PDI</a>
       <a href="#quickstart">Quick Start</a>
       <a href="#resources">Resources</a>
@@ -202,21 +202,137 @@
         </p>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="mt-32">
-      <h3 style="margin-bottom:10px;">Evidence-Driven Skill Generation</h3>
-      <p class="small" style="color:var(--c-text-muted); max-width:880px;">
-        After task success, SPARK aggregates six structured evidence sources and passes them to the skill-distillation model, enabling it to extract transferable knowledge from the full solution path and obstacle context
-        rather than summarizing the surface of a single successful attempt.
-      </p>
-      <div class="grid cols-3 mt-16">
-        <div class="card"><h3>① Task Pattern</h3><p>An abstracted task instruction that captures the problem class rather than instance-specific details.</p></div>
-        <div class="card"><h3>② Execution Chain</h3><p>The key command sequence from the successful trajectory, filtered through semantic classification, importance scoring, and low-signal removal.</p></div>
-        <div class="card"><h3>③ Verification</h3><p>The environment-verified outcomes: which tests passed and what final reward was achieved.</p></div>
-        <div class="card"><h3>④ Lessons</h3><p>Recurring failure modes and confirmed caveats distilled from the complete attempt history.</p></div>
-        <div class="card"><h3>⑤ Environment</h3><p>Runtime context from the Dockerfile, including base image, packages, and SDKs.</p></div>
-        <div class="card"><h3>⑥ Raw Support Tail</h3><p>The stdout tail from successful execution, used to calibrate abstraction against raw evidence.</p></div>
+<section id="cases" class="section">
+  <div class="container">
+    <div class="section-eyebrow">Case Studies</div>
+    <h2>When PDI Starts to Matter</h2>
+    <p class="lead">
+      The following cases illustrate external transfer (lean4-proof), online PDI intervention (3d-scan-calc / manufacturing-codebook-normalization),
+      and verified execution chains outperforming plan repetition (tactic reproduction). Select a tab to inspect each case.
+    </p>
+
+    <div data-tabs>
+      <div class="tabs" role="tablist">
+        <button class="active" data-target="case-lean">Case 1 · lean4-proof</button>
+        <button data-target="case-online">Case 2 · Online PDI Intervention</button>
+        <button data-target="case-quadrant">Case 3 · Evidence vs Plan Quadrant</button>
       </div>
+
+      <div class="tab-panel active" data-panel="case-lean">
+        <div class="case">
+          <h4>Held-out Student (Claude Haiku 4.5): 118-line sketch → 393-line executable recipe</h4>
+          <div class="case-meta">Task: prove the geometric-series bound S<sub>n</sub> ≤ 2 in Lean 4; verifier command: <code>lake env lean -DwarningAsError=true solution.lean</code>.</div>
+
+          <figure class="fig fig-wide mt-16">
+            <img src="assets/img/case1_lean4_before_after.gif" alt="lean4-proof before/after terminal animation" />
+            <figcaption>
+              Side-by-side replay of the held-out student's shell session.
+              <b>Left:</b> with the non-PDI skill, the student cycles through 15 trial-and-error commands with repeated failures (✗) and warnings (!).
+              <b>Right:</b> after receiving the PDI-refined skill, 5 commands take the student from a clean write-to-<code>/tmp</code> to <code>reward = 1.0</code> on the first Lean compile.
+            </figcaption>
+          </figure>
+
+          <div class="grid cols-2 mt-16">
+            <div>
+              <h5 style="margin:0 0 6px;">Before — Non-PDI skill</h5>
+              <ul>
+                <li>Provides only four sections—overview, orientation, strategy, and pitfalls—across 118 lines.</li>
+                <li>Lacks a complete theorem block and offers only a high-level proof sketch.</li>
+                <li>Uses an incomplete verifier command that omits <code>-DwarningAsError=true</code>.</li>
+                <li>Does not specify a write-to-<code>/tmp</code>-then-replace workflow, making it easy to corrupt <code>solution.lean</code>.</li>
+              </ul>
+              <div class="mt-16"><span class="badge-neutral">Trajectory:</span> 15 trial-and-error commands with repeated failures.</div>
+            </div>
+            <div>
+              <h5 style="margin:0 0 6px;">After — PDI-refined skill</h5>
+              <ul>
+                <li>Contains seven structured modules, including step-by-step workflow, reference proof, and testing sections, across 393 lines.</li>
+                <li>Embeds an <b>executable theorem block</b> with explicit <code>norm_num</code> / <code>ring</code> / <code>linarith</code> tactic chains.</li>
+                <li>Provides the <b>exact</b> verifier command, preventing warnings from being silently ignored.</li>
+                <li>Enforces a <b>write-to-<code>/tmp</code>-then-replace</b> workflow to avoid damaging the original file.</li>
+              </ul>
+              <div class="mt-16"><span class="result">5 commands · 0 failures</span></div>
+            </div>
+          </div>
+
+          <div class="takeaway mt-16">
+            PDI turns a seemingly well-written plan-oriented document into an evidence-backed recipe that students can <b>execute step by step</b>.
+            The held-out student never participates in generation yet can reuse the skill directly, illustrating the intended <b>cross-model skill transfer</b>.
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="case-online">
+        <div class="case">
+          <h4>Interrupting Ossified Plans During Exploration, Not After the Fact</h4>
+          <div class="case-meta">Two representative tasks: <code>3d-scan-calc</code> and <code>manufacturing-codebook-normalization</code>.</div>
+
+          <figure class="fig fig-wide mt-16">
+            <img src="assets/img/exploration_dynamics_pdi_two_tasks.gif" alt="Online PDI-guided control — animated" />
+            <figcaption>
+              Each panel reports φ<sub>exec</sub>, φ<sub>plan</sub>, φ<sub>oss</sub>, and the warmup-weighted proxy-PDI used for intervention decisions.
+              Dashed lines mark soft and strong triggers; PDI-enabled runs recover into the positive region later in exploration,
+              whereas observe-only controls remain negative.
+            </figcaption>
+          </figure>
+
+          <ul class="mt-16">
+            <li><b>3d-scan-calc:</b> a soft intervention is triggered at step 4, escalates to a strong intervention at step 5, and the trajectory recovers.</li>
+            <li><b>manufacturing-codebook-normalization:</b> two soft triggers at steps 3 and 5 are sufficient to reverse the trend.</li>
+          </ul>
+
+          <div class="takeaway mt-16">
+            <b>Intervention is prompt-only, and the metric remains hidden from the agent.</b>
+            It corrects trajectory direction without changing the goal or exposing the score, making online PDI intervention highly <b>composable with existing agent systems</b>
+            without retraining.
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="case-quadrant">
+        <div class="case">
+          <h4>Four Quadrants Defined by φ<sub>plan</sub> and φ<sub>exec</sub></h4>
+          <div class="case-meta">Testing the core claim: effective skills combine low plan copying with high execution grounding.</div>
+          <div class="table-wrap mt-16">
+            <table class="sk">
+              <thead><tr><th>φ<sub>plan</sub></th><th>φ<sub>exec</sub></th><th>Average Δr</th><th>Gap vs Human</th></tr></thead>
+              <tbody>
+                <tr class="best"><td>Low</td><td>High</td><td class="badge-up"><b>+0.377</b></td><td class="badge-up"><b>+0.312</b></td></tr>
+                <tr><td>Low</td><td>Low</td><td class="badge-up">+0.321</td><td class="badge-up">+0.393</td></tr>
+                <tr><td>High</td><td>High</td><td>+0.143</td><td>+0.071</td></tr>
+                <tr><td>High</td><td>Low</td><td>+0.028</td><td class="badge-down">−0.040</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small mt-16">
+            The highlighted row is the quadrant PDI is designed to maximize. Counterintuitively, <b>Low plan + Low exec</b> can also be beneficial:
+            as long as the skill does not collapse onto the memo, it can still help even without perfectly matching the command distribution.
+            The worst case combines both problems: the skill merely restates what the agent intended to do, with little evidence of what it actually did.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="evidence" class="section alt">
+  <div class="container">
+    <div class="section-eyebrow">Skill Distillation</div>
+    <h2>Evidence-Driven Skill Generation</h2>
+    <p class="lead">
+      After task success, SPARK aggregates six structured evidence sources and passes them to the skill-distillation model, enabling it to extract transferable knowledge from the full solution path and obstacle context
+      rather than summarizing the surface of a single successful attempt.
+    </p>
+    <div class="grid cols-3 mt-16">
+      <div class="card"><h3>① Task Pattern</h3><p>An abstracted task instruction that captures the problem class rather than instance-specific details.</p></div>
+      <div class="card"><h3>② Execution Chain</h3><p>The key command sequence from the successful trajectory, filtered through semantic classification, importance scoring, and low-signal removal.</p></div>
+      <div class="card"><h3>③ Verification</h3><p>The environment-verified outcomes: which tests passed and what final reward was achieved.</p></div>
+      <div class="card"><h3>④ Lessons</h3><p>Recurring failure modes and confirmed caveats distilled from the complete attempt history.</p></div>
+      <div class="card"><h3>⑤ Environment</h3><p>Runtime context from the Dockerfile, including base image, packages, and SDKs.</p></div>
+      <div class="card"><h3>⑥ Raw Support Tail</h3><p>The stdout tail from successful execution, used to calibrate abstraction against raw evidence.</p></div>
     </div>
   </div>
 </section>
@@ -434,120 +550,7 @@
   </div>
 </section>
 
-<section id="cases" class="section alt">
-  <div class="container">
-    <div class="section-eyebrow">Case Studies</div>
-    <h2>When PDI Starts to Matter</h2>
-    <p class="lead">
-      The following cases illustrate external transfer (lean4-proof), online PDI intervention (3d-scan-calc / manufacturing-codebook-normalization),
-      and verified execution chains outperforming plan repetition (tactic reproduction). Select a tab to inspect each case.
-    </p>
-
-    <div data-tabs>
-      <div class="tabs" role="tablist">
-        <button class="active" data-target="case-lean">Case 1 · lean4-proof</button>
-        <button data-target="case-online">Case 2 · Online PDI Intervention</button>
-        <button data-target="case-quadrant">Case 3 · Evidence vs Plan Quadrant</button>
-      </div>
-
-      <div class="tab-panel active" data-panel="case-lean">
-        <div class="case">
-          <h4>Held-out Student (Claude Haiku 4.5): 118-line sketch → 393-line executable recipe</h4>
-          <div class="case-meta">Task: prove the geometric-series bound S<sub>n</sub> ≤ 2 in Lean 4; verifier command: <code>lake env lean -DwarningAsError=true solution.lean</code>.</div>
-
-          <figure class="fig fig-wide mt-16">
-            <img src="assets/img/case1_lean4_before_after.gif" alt="lean4-proof before/after terminal animation" />
-            <figcaption>
-              Side-by-side replay of the held-out student's shell session.
-              <b>Left:</b> with the non-PDI skill, the student cycles through 15 trial-and-error commands with repeated failures (✗) and warnings (!).
-              <b>Right:</b> after receiving the PDI-refined skill, 5 commands take the student from a clean write-to-<code>/tmp</code> to <code>reward = 1.0</code> on the first Lean compile.
-            </figcaption>
-          </figure>
-
-          <div class="grid cols-2 mt-16">
-            <div>
-              <h5 style="margin:0 0 6px;">Before — Non-PDI skill</h5>
-              <ul>
-                <li>Provides only four sections—overview, orientation, strategy, and pitfalls—across 118 lines.</li>
-                <li>Lacks a complete theorem block and offers only a high-level proof sketch.</li>
-                <li>Uses an incomplete verifier command that omits <code>-DwarningAsError=true</code>.</li>
-                <li>Does not specify a write-to-<code>/tmp</code>-then-replace workflow, making it easy to corrupt <code>solution.lean</code>.</li>
-              </ul>
-              <div class="mt-16"><span class="badge-neutral">Trajectory:</span> 15 trial-and-error commands with repeated failures.</div>
-            </div>
-            <div>
-              <h5 style="margin:0 0 6px;">After — PDI-refined skill</h5>
-              <ul>
-                <li>Contains seven structured modules, including step-by-step workflow, reference proof, and testing sections, across 393 lines.</li>
-                <li>Embeds an <b>executable theorem block</b> with explicit <code>norm_num</code> / <code>ring</code> / <code>linarith</code> tactic chains.</li>
-                <li>Provides the <b>exact</b> verifier command, preventing warnings from being silently ignored.</li>
-                <li>Enforces a <b>write-to-<code>/tmp</code>-then-replace</b> workflow to avoid damaging the original file.</li>
-              </ul>
-              <div class="mt-16"><span class="result">5 commands · 0 failures</span></div>
-            </div>
-          </div>
-
-          <div class="takeaway mt-16">
-            PDI turns a seemingly well-written plan-oriented document into an evidence-backed recipe that students can <b>execute step by step</b>.
-            The held-out student never participates in generation yet can reuse the skill directly, illustrating the intended <b>cross-model skill transfer</b>.
-          </div>
-        </div>
-      </div>
-
-      <div class="tab-panel" data-panel="case-online">
-        <div class="case">
-          <h4>Interrupting Ossified Plans During Exploration, Not After the Fact</h4>
-          <div class="case-meta">Two representative tasks: <code>3d-scan-calc</code> and <code>manufacturing-codebook-normalization</code>.</div>
-
-          <figure class="fig fig-wide mt-16">
-            <img src="assets/img/exploration_dynamics_pdi_two_tasks.gif" alt="Online PDI-guided control — animated" />
-            <figcaption>
-              Each panel reports φ<sub>exec</sub>, φ<sub>plan</sub>, φ<sub>oss</sub>, and the warmup-weighted proxy-PDI used for intervention decisions.
-              Dashed lines mark soft and strong triggers; PDI-enabled runs recover into the positive region later in exploration,
-              whereas observe-only controls remain negative.
-            </figcaption>
-          </figure>
-
-          <ul class="mt-16">
-            <li><b>3d-scan-calc:</b> a soft intervention is triggered at step 4, escalates to a strong intervention at step 5, and the trajectory recovers.</li>
-            <li><b>manufacturing-codebook-normalization:</b> two soft triggers at steps 3 and 5 are sufficient to reverse the trend.</li>
-          </ul>
-
-          <div class="takeaway mt-16">
-            <b>Intervention is prompt-only, and the metric remains hidden from the agent.</b>
-            It corrects trajectory direction without changing the goal or exposing the score, making online PDI intervention highly <b>composable with existing agent systems</b>
-            without retraining.
-          </div>
-        </div>
-      </div>
-
-      <div class="tab-panel" data-panel="case-quadrant">
-        <div class="case">
-          <h4>Four Quadrants Defined by φ<sub>plan</sub> and φ<sub>exec</sub></h4>
-          <div class="case-meta">Testing the core claim: effective skills combine low plan copying with high execution grounding.</div>
-          <div class="table-wrap mt-16">
-            <table class="sk">
-              <thead><tr><th>φ<sub>plan</sub></th><th>φ<sub>exec</sub></th><th>Average Δr</th><th>Gap vs Human</th></tr></thead>
-              <tbody>
-                <tr class="best"><td>Low</td><td>High</td><td class="badge-up"><b>+0.377</b></td><td class="badge-up"><b>+0.312</b></td></tr>
-                <tr><td>Low</td><td>Low</td><td class="badge-up">+0.321</td><td class="badge-up">+0.393</td></tr>
-                <tr><td>High</td><td>High</td><td>+0.143</td><td>+0.071</td></tr>
-                <tr><td>High</td><td>Low</td><td>+0.028</td><td class="badge-down">−0.040</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="small mt-16">
-            The highlighted row is the quadrant PDI is designed to maximize. Counterintuitively, <b>Low plan + Low exec</b> can also be beneficial:
-            as long as the skill does not collapse onto the memo, it can still help even without perfectly matching the command distribution.
-            The worst case combines both problems: the skill merely restates what the agent intended to do, with little evidence of what it actually did.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="online" class="section">
+<section id="online" class="section alt">
   <div class="container">
     <div class="section-eyebrow">Online Intervention Ablation</div>
     <h2>w/ PDI vs. w/o PDI</h2>
@@ -597,7 +600,7 @@
   </div>
 </section>
 
-<section id="quickstart" class="section alt">
+<section id="quickstart" class="section">
   <div class="container">
     <div class="section-eyebrow">Quick Start</div>
     <h2>Run SPARK in a Few Commands</h2>
@@ -659,7 +662,7 @@ uv run python run_tasks_gen.py \
   </div>
 </section>
 
-<section id="resources" class="section">
+<section id="resources" class="section alt">
   <div class="container">
     <div class="section-eyebrow">Resources</div>
     <h2>Paper, Code, and Citation</h2>
