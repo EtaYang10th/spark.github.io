@@ -53,7 +53,6 @@
 
 <header id="top" class="hero">
   <div class="container">
-    <span class="eyebrow">NeurIPS 2026 · Preprint</span>
     <h1>
       <span class="gradient">Evidence Over Plans:</span><br/>
       Online Trajectory Verification for Skill Distillation
@@ -95,13 +94,6 @@
         </svg>
         HF Dataset
       </a>
-    </div>
-
-    <div class="institutions">
-      <span class="small" style="margin-right:4px;">Contributors from</span>
-      <span class="inst-chip">Rutgers University</span>
-      <span class="inst-chip">Department of Computer Science</span>
-      <span class="inst-chip">Department of Statistics</span>
     </div>
   </div>
 </header>
@@ -394,14 +386,6 @@
       </figcaption>
     </figure>
 
-    <figure class="fig mt-24" style="max-width: 760px; margin-left: auto; margin-right: auto;">
-      <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent exploration" />
-      <figcaption>
-        <b>Divergent exploration</b> transfers better than <b>convergent exploration</b>. Convergent trajectories often encode teacher-specific refinements
-        that student models cannot reproduce; for some students, convergent skills even yield negative Δr.
-      </figcaption>
-    </figure>
-
     <div class="takeaway mt-24">
       <b>Takeaway.</b> The best quadrant is <b>low φ<sub>plan</sub> + high φ<sub>exec</sub></b>, with average Δr = <b>+0.377</b>
       and a <b>+0.312</b> gain over human-written skills; the worst quadrant (high plan, low exec) has Δr ≈ 0 and falls below human-written skills by <b>−0.040</b>.
@@ -474,7 +458,7 @@
       interaction-free, no-skill performance after receiving SPARK skills—<b>weaker students can outperform stronger teachers</b>.
     </p>
 
-    <div class="grid cols-2 mt-16">
+    <div class="grid cols-3 mt-16">
       <figure class="fig">
         <img src="assets/img/baseline_vs_spark_vs_human.png" alt="Main result" />
         <figcaption>
@@ -489,6 +473,13 @@
           In other words, <b>there is no universal key</b>: simply scaling a skill library does not make gains add linearly.
         </figcaption>
       </figure>
+      <figure class="fig">
+        <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent exploration" />
+        <figcaption>
+          <b>Divergent exploration</b> transfers better than <b>convergent exploration</b>. Convergent trajectories often encode teacher-specific refinements
+          that student models cannot reproduce; for some students, convergent skills even yield negative Δr.
+        </figcaption>
+      </figure>
     </div>
 
     <div class="takeaway mt-24">
@@ -499,7 +490,7 @@
 
     <div class="mt-32">
       <h3 style="margin-bottom:8px;">Trajectory-level evidence</h3>
-      <div class="grid cols-3 mt-16">
+      <div class="grid cols-2 mt-16">
         <figure class="fig">
           <img src="assets/img/compression_ratio_vs_skill_effectiveness.png" alt="Compression ratio" />
           <figcaption><b>Compression ratio:</b> excessive compression removes actionable detail and is negatively correlated with skill effectiveness by Spearman correlation.</figcaption>
@@ -507,10 +498,6 @@
         <figure class="fig">
           <img src="assets/img/exploration_sweet_spot.png" alt="Attempts sweet spot" />
           <figcaption><b>Attempt budget:</b> gains remain consistently positive when K ≤ 3; additional attempts become more variable and model-dependent.</figcaption>
-        </figure>
-        <figure class="fig">
-          <img src="assets/img/divergent_vs_convergent.png" alt="Divergent vs convergent" />
-          <figcaption><b>Divergent wins:</b> divergent trajectories yield larger gains across nearly all models, while convergent trajectories can produce negative Δr for some students.</figcaption>
         </figure>
       </div>
     </div>
