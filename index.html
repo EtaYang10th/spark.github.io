@@ -265,9 +265,9 @@
           <figure class="fig fig-wide mt-16">
             <img src="assets/img/exploration_dynamics_pdi_two_tasks.gif" alt="Online PDI-guided control — animated" />
             <figcaption>
-              Each panel reports φ<sub>exec</sub>, φ<sub>plan</sub>, φ<sub>oss</sub>, and the warmup-weighted proxy-PDI used for intervention decisions.
-              Dashed lines mark soft and strong triggers; PDI-enabled runs recover into the positive region later in exploration,
-              whereas observe-only controls remain negative.
+              <b>Top row (green):</b> with online PDI intervention, both tasks reach <code>reward = 1.0</code> — 3d-scan-calc solves at attempt 8, manufacturing-codebook-normalization solves at attempt 4 (its trace stops early <b>because</b> the agent already won).
+              <b>Bottom row (red):</b> the observe-only control exhausts the same budget with 0 successes.
+              Orange circles mark soft PDI triggers, red circles mark strong ones; the dashed line is τ = −0.5.
             </figcaption>
           </figure>
 
