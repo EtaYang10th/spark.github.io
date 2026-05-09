@@ -82,6 +82,33 @@ a:hover { text-decoration: underline; }
 }
 .nav-cta:hover { background: var(--c-primary-deep); text-decoration: none; }
 
+/* ----- Hugging Face accents ----- */
+.nav-hf {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #FFD21E; color: #1f1300 !important;
+  padding: 6px 12px !important; border-radius: 999px !important;
+  font-weight: 700 !important; font-size: 13px;
+  border: 1px solid #f0c400;
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.nav-hf:hover { background: #FFCE00; text-decoration: none; transform: translateY(-1px); box-shadow: var(--c-shadow); }
+.nav-hf .hf-logo { width: 18px; height: 18px; display: inline-block; }
+
+.btn.hf {
+  background: #FFD21E; color: #1f1300 !important;
+  border-color: #f0c400;
+}
+.btn.hf:hover { background: #FFCE00; border-color: #e7ba00; }
+.btn .hf-logo { width: 20px; height: 20px; display: inline-block; }
+
+.hf-card {
+  border-color: #f7e8a6;
+  background: linear-gradient(180deg, #fffbea 0%, #ffffff 90%);
+}
+.hf-card:hover { border-color: #f0c400; }
+.hf-card h3 { display: inline-flex; align-items: center; gap: 8px; }
+.hf-card .hf-logo { width: 24px; height: 24px; display: inline-block; vertical-align: middle; }
+
 .nav-toggle {
   display: none;
   background: none; border: 1px solid var(--c-border); border-radius: 8px;
