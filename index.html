@@ -455,6 +455,15 @@
           <h4>Held-out Student (Claude Haiku 4.5): 118-line sketch → 393-line executable recipe</h4>
           <div class="case-meta">Task: prove the geometric-series bound S<sub>n</sub> ≤ 2 in Lean 4; verifier command: <code>lake env lean -DwarningAsError=true solution.lean</code>.</div>
 
+          <figure class="fig fig-wide mt-16">
+            <img src="assets/img/case1_lean4_before_after.gif" alt="lean4-proof before/after terminal animation" />
+            <figcaption>
+              Side-by-side replay of the held-out student's shell session.
+              <b>Left:</b> with the non-PDI skill, the student cycles through 15 trial-and-error commands with repeated failures (✗) and warnings (!).
+              <b>Right:</b> after receiving the PDI-refined skill, 5 commands take the student from a clean write-to-<code>/tmp</code> to <code>reward = 1.0</code> on the first Lean compile.
+            </figcaption>
+          </figure>
+
           <div class="grid cols-2 mt-16">
             <div>
               <h5 style="margin:0 0 6px;">Before — Non-PDI skill</h5>
